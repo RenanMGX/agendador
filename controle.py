@@ -94,7 +94,7 @@ if __name__ == "__main__":
             print("    Set the time")
             time = input("    Time: ")
 
-            if (type(response:=data.create(name=name, path=path, recurrence=recurrence, time=time))) == Pass:
+            if (response:=data.update(name=name, path=path, recurrence=recurrence, time=time).__class__.__name__) == Pass().__class__.__name__:
                 print("\n    Schedule line Created!\n")
             else:
                 print(f"\n    Error when save this line motive:\n    {response}\n    try again!")
