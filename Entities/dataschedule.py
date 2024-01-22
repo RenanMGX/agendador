@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 from exception.exception_person import Error, Pass
+from getpass import getuser
 
 class DataSchedule():
     def __init__(self, pathFile = f"{os.getcwd()}\\agendador_dados.json"):
@@ -10,9 +11,53 @@ class DataSchedule():
             with open(self.__pathFile, 'w') as file:
                 dataTest = []
                 json.dump(dataTest, file)
+
+        config_path = f"C:\\Users\\{getuser()}\\.agendador_config\\"
+        if not os.path.exists(config_path):
+            os.makedirs(config_path)
+        with open(config_path + "config.json", 'w')as file:
+            json.dump({"scheduleFile": pathFile}, file)
+
         self.__recurrenceValid = [
             "daily",
             "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+            "day 1",
+            "day 2",
+            "day 3",
+            "day 4",
+            "day 5",
+            "day 6",
+            "day 7",
+            "day 8",
+            "day 9",
+            "day 10",
+            "day 11",
+            "day 12",
+            "day 13",
+            "day 14",
+            "day 15",
+            "day 16",
+            "day 17",
+            "day 18",
+            "day 19",
+            "day 20",
+            "day 21",
+            "day 22",
+            "day 23",
+            "day 24",
+            "day 25",
+            "day 26",
+            "day 27",
+            "day 28",
+            "day 29",
+            "day 30",
+            "day 31",
         ]
     
     def create(self, name, path, time, recurrence="daily"):
