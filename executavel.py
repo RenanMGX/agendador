@@ -143,9 +143,7 @@ if __name__ == "__main__":
         sleep(1)
 
         time = datetime.now()
-        if (time.minute == 0) and (time.second == 0):
-            print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
-            sleep(1)
         if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
             print_list_programs(path_file)
-            sleep(1)            
+        elif (time.minute == 0) and (time.second == 0):
+            print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
