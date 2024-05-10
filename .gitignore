@@ -3,3 +3,5 @@
 *.spec
 *venv
 *trash
+*.json
+*.csv

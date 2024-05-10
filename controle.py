@@ -71,7 +71,8 @@ if __name__ == "__main__":
         elif command in read_param:
             print("List of scheduled programs:\n")
             for line in data.read():
-                print(f"    {line}")
+                #print(f"    {line}")
+                print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
             print()
         
         elif command in create_param:

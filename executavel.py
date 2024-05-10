@@ -7,6 +7,7 @@ import schedule
 from datetime import datetime
 import os
 import traceback
+import multiprocessing
 
 def data_file_path():
     with open(f"C:\\Users\\{getuser()}\\.agendador_config\\config.json" , 'r')as file:
@@ -31,6 +32,8 @@ class ExecuteList():
             with open(self.__log_path, 'w')as file:
                 file.write(f"Date;Name;Path;Status;Description\n")
         
+        self.start()
+        
     def log(self,status, descri=""):
         with open(self.__log_path, 'a')as file:
             file.write(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')};{self.__name};{self.__path_file};{status};{descri}\n")
@@ -41,7 +44,17 @@ class ExecuteList():
                 return 
         
         try:
-            print(f"\n{'-'*25} Begin of program {'-'*25}\nthe program '{self.__name}' has been started!")
+            print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - the program '{self.__name}' has been started!")
+            
+            # QUEUE = multiprocessing.Queue()
+            # thread = multiprocessing.Process(target=multi_start, args=(QUEUE, self.__path_file, self.__cwd))
+            # thread.start()
+            
+            # retorno_file:dict = QUEUE.get()
+            
+            # process:subprocess.Popen = retorno_file["process"]
+            # stderr:str = retorno_file["stderr"]
+            
             process = subprocess.Popen(['python', self.__path_file], shell=True, cwd=self.__cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
 
@@ -50,15 +63,22 @@ class ExecuteList():
                 self.log("OK")
             else:
                 #print(f"Erro durante a execução. Código de retorno: {process.returncode}")
-                print(f"an error ocurred:\n{stderr}")
-                self.log("Error", stderr.replace("\n", "|"))
+                stderr = stderr.replace('\n', f"\n{' '*22}")
+                print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - an error ocurred with program '{self.__name}': \n{' '*22}{stderr} ")
+                self.log("Error", stderr.replace("\n", " <br> "))
                 #raise stderr
         except Exception:
             error = traceback.format_exc()
-            print(f"the program '{self.__name}' can not be executed! motive: \n{error}")
-            self.log("Error", error.replace("\n", "|"))
-        finally:
-            print(f"\n{'-'*25} End of program {'-'*25}\n")
+            error = error.replace('\n', f"\n{' '*22}")
+            print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - the program '{self.__name}' can not be executed! motive: \n{' '*22}{error} ")
+            self.log("Error", error.replace("\n", " <br> "))
+
+            
+def multi_start(queue:multiprocessing.Queue, path_file, cwd):
+    process = subprocess.Popen(['python', path_file], shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+    queue.put({"stdout": stdout, "process" : process})
+        
 
     
     
@@ -67,16 +87,16 @@ class ScheduleExecute():
         self.__schedule = schedule
         
     def categorization_schedules(self):
-        daily_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "daily"]
-        monday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "monday"]
-        tuesday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "tuesday"]
-        wednesday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "wednesday"]
-        thursday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "thursday"]
-        friday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "friday"]
-        saturday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "saturday"]
-        sunday_s = [{"time":line['date']['time'], "event" : ExecuteList(line['name'],line['path'])} for line in self.__schedule if line['date']['recurrence'] == "sunday"]
-        day_s = [{"time": line['date']['time'], "event" : ExecuteList(line['name'],line['path'], day=line['date']['recurrence'].split(" ")[1])} for line in self.__schedule if line['date']['recurrence'].split(" ")[0] == "day"]
-
+        daily_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "daily"]
+        
+        monday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "monday"]
+        tuesday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "tuesday"]
+        wednesday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "wednesday"]
+        thursday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "thursday"]
+        friday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "friday"]
+        saturday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "saturday"]
+        sunday_s = [{"time":line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path']))} for line in self.__schedule if line['date']['recurrence'] == "sunday"]
+        day_s = [{"time": line['date']['time'], "event" : multiprocessing.Process(target=ExecuteList, args=(line['name'],line['path'], line['date']['recurrence'].split(" ")[1]))} for line in self.__schedule if line['date']['recurrence'].split(" ")[0] == "day"]
 
         for line in daily_s:
             schedule.every().day.at(line['time']).do(line['event'].start)
@@ -104,7 +124,10 @@ class ScheduleExecute():
 
         for line in day_s:
             schedule.every().day.at(line['time']).do(line['event'].start)
-            
+
+def print_list_programs(file):
+    for line in file:
+        print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
 
 if __name__ == "__main__":
     path_file = data_file_path()
@@ -112,8 +135,7 @@ if __name__ == "__main__":
     create_schedule.categorization_schedules()
     print("Execute Schedule running!\n")
 
-    for line in path_file:
-        print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
+    print_list_programs(path_file)
 
     print(f'\nnow {datetime.now()}\n')
     while True:
@@ -122,4 +144,8 @@ if __name__ == "__main__":
 
         time = datetime.now()
         if (time.minute == 0) and (time.second == 0):
-            print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!") 
+            print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
+            sleep(1)
+        if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
+            print_list_programs(path_file)
+            sleep(1)            
