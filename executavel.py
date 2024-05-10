@@ -130,6 +130,7 @@ def print_list_programs(file):
         print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     path_file = data_file_path()
     create_schedule = ScheduleExecute(path_file)
     create_schedule.categorization_schedules()
