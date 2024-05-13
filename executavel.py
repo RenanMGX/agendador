@@ -130,21 +130,36 @@ def print_list_programs(file):
         print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support()
-    path_file = data_file_path()
-    create_schedule = ScheduleExecute(path_file)
-    create_schedule.categorization_schedules()
-    print("Execute Schedule running!\n")
-
-    print_list_programs(path_file)
-
-    print(f'\nnow {datetime.now()}\n')
     while True:
-        schedule.run_pending()
-        sleep(1)
+        try:
+            multiprocessing.freeze_support()
+            path_file = data_file_path()
+            create_schedule = ScheduleExecute(path_file)
+            create_schedule.categorization_schedules()
+            print("Execute Schedule running!\n")
 
-        time = datetime.now()
-        if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
             print_list_programs(path_file)
-        elif (time.minute == 0) and (time.second == 0):
-            print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
+
+            print(f'\nnow {datetime.now()}\n')
+            while True:
+                schedule.run_pending()
+                sleep(1)
+                
+                time = datetime.now()
+                if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
+                    print_list_programs(path_file)
+                elif (time.minute == 0) and (time.second == 0):
+                    print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
+        except Exception as error:
+            path:str = "logs/"
+            if not os.path.exists(path):
+                os.makedirs(path)
+            file:str = path + f"LogError_{datetime.now().strftime('%d%m%Y - %H%M%S')}_.txt"
+            with open(file, 'w', encoding="utf-8")as _file:
+                _file.write(traceback.format_exc())
+            print(f"\n{'-'*40}\num erro de execução do agendador foi encontrado")
+            print(traceback.format_exc())
+            sleep(5*60)
+            print(f"reiniciando o Agendador\n{'-'*40}\n")
+            
+            
