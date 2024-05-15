@@ -8,6 +8,7 @@ from datetime import datetime
 import os
 import traceback
 import multiprocessing
+import importlib
 
 def data_file_path():
     with open(f"C:\\Users\\{getuser()}\\.agendador_config\\config.json" , 'r')as file:
@@ -46,15 +47,6 @@ class ExecuteList():
         try:
             print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - the program '{self.__name}' has been started!")
             
-            # QUEUE = multiprocessing.Queue()
-            # thread = multiprocessing.Process(target=multi_start, args=(QUEUE, self.__path_file, self.__cwd))
-            # thread.start()
-            
-            # retorno_file:dict = QUEUE.get()
-            
-            # process:subprocess.Popen = retorno_file["process"]
-            # stderr:str = retorno_file["stderr"]
-            
             process = subprocess.Popen(['python', self.__path_file], shell=True, cwd=self.__cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
 
@@ -72,15 +64,11 @@ class ExecuteList():
             error = error.replace('\n', f"\n{' '*22}")
             print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - the program '{self.__name}' can not be executed! motive: \n{' '*22}{error} ")
             self.log("Error", error.replace("\n", " <br> "))
-
             
 def multi_start(queue:multiprocessing.Queue, path_file, cwd):
     process = subprocess.Popen(['python', path_file], shell=True, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
     queue.put({"stdout": stdout, "process" : process})
-        
-
-    
     
 class ScheduleExecute():
     def __init__(self, schedule:list):
@@ -129,37 +117,40 @@ def print_list_programs(file):
     for line in file:
         print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
 
+def main():
+    multiprocessing.freeze_support()
+    try:
+        path_file = data_file_path()
+        create_schedule = ScheduleExecute(path_file)
+        create_schedule.categorization_schedules()
+        print("Execute Schedule running!\n")
+
+        print_list_programs(path_file)
+
+        print(f'\nnow {datetime.now()}\n')
+        while True:
+            schedule.run_pending()
+            sleep(1)
+                
+            time = datetime.now()
+            if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
+                print_list_programs(path_file)
+            elif (time.minute == 0) and (time.second == 0):
+                print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
+                    
+    except Exception as error:
+        path:str = "logs/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        file:str = path + f"LogError_{datetime.now().strftime('%d%m%Y - %H%M%S')}_.txt"
+        with open(file, 'w', encoding="utf-8")as _file:
+            _file.write(traceback.format_exc())
+        print(f"\n{'-'*40}\num erro de execução do agendador foi encontrado")
+        print(traceback.format_exc())
+        sleep(5*60)
+        print(f"reiniciando o Agendador\n{'-'*40}\n")
+
 if __name__ == "__main__":
     while True:
-        try:
-            multiprocessing.freeze_support()
-            path_file = data_file_path()
-            create_schedule = ScheduleExecute(path_file)
-            create_schedule.categorization_schedules()
-            print("Execute Schedule running!\n")
-
-            print_list_programs(path_file)
-
-            print(f'\nnow {datetime.now()}\n')
-            while True:
-                schedule.run_pending()
-                sleep(1)
-                
-                time = datetime.now()
-                if (time.hour == 0) and (time.minute == 0) and (time.second == 0):
-                    print_list_programs(path_file)
-                elif (time.minute == 0) and (time.second == 0):
-                    print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
-        except Exception as error:
-            path:str = "logs/"
-            if not os.path.exists(path):
-                os.makedirs(path)
-            file:str = path + f"LogError_{datetime.now().strftime('%d%m%Y - %H%M%S')}_.txt"
-            with open(file, 'w', encoding="utf-8")as _file:
-                _file.write(traceback.format_exc())
-            print(f"\n{'-'*40}\num erro de execução do agendador foi encontrado")
-            print(traceback.format_exc())
-            sleep(5*60)
-            print(f"reiniciando o Agendador\n{'-'*40}\n")
-            
-            
+        main()
+        importlib.reload(schedule)
