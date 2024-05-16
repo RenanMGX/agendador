@@ -52,6 +52,7 @@ class ExecuteList():
 
             if process.returncode == 0:
                 #print(f"\n{stdout}\n")
+                print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - the program '{self.__name}' are finish! \n")
                 self.log("OK")
             else:
                 #print(f"Erro durante a execução. Código de retorno: {process.returncode}")
@@ -137,7 +138,6 @@ def main():
                 print_list_programs(path_file)
             elif (time.minute == 0) and (time.second == 0):
                 print(f"{time.strftime('%d/%m/%Y %H:%M:%S')} - this program are running!")
-                    
     except Exception as error:
         path:str = "logs/"
         if not os.path.exists(path):
