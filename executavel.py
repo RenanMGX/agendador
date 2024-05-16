@@ -115,6 +115,7 @@ class ScheduleExecute():
             schedule.every().day.at(line['time']).do(line['event'].start)
 
 def print_list_programs(file):
+    file = sorted(file, key=lambda d: d['date']['time'])
     for line in file:
         print(f"the program '{line['name']}' will be executed in '{line['date']['recurrence']}' at '{line['date']['time']}'")
 
